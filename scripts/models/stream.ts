@@ -141,7 +141,8 @@ export class Stream {
       quality: this.quality,
       url: this.url,
       userAgent: this.userAgent,
-      line: this.line
+      line: this.line,
+      logo: this.logo
     }
   }
 
@@ -151,7 +152,18 @@ export class Stream {
       url: this.url,
       timeshift: this.timeshift || null,
       http_referrer: this.httpReferrer || null,
-      user_agent: this.userAgent || null
+      user_agent: this.userAgent || null,
+      logo: this.logo || null,
+      quality: this.quality || null,
+      line: this.line || null,
+      broadcastArea: this.broadcastArea || null,
+      categories: this.categories || null,
+      languages: this.languages || null,
+      isNSFW: this.isNSFW || null,
+      groupTitle: this.groupTitle || null,
+      filepath: this.filepath || null,
+      name: this.name || null,
+      label: this.label || null
     }
   }
 

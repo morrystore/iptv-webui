@@ -21,7 +21,10 @@
     "deploy": "npm run playlist:deploy && npm run api:deploy",
     "lint": "npx eslint ./scripts/**/*.ts ./tests/**/*.ts",
     "test": "jest --runInBand",
-    "postinstall": "npm run api:load"
+    "postinstall": "npm run api:load",
+    "serve": "jiti src/server/index.ts --port 9001",
+    "web": "vite",
+    "start": "npm-run-all --parallel serve web"
   },
   "jest": {
     "transform": {
@@ -36,32 +39,47 @@
   "private": true,
   "license": "MIT",
   "dependencies": {
+    "@element-plus/icons": "^0.0.11",
     "@freearhey/core": "^0.2.1",
     "@octokit/core": "^4.2.1",
     "@octokit/plugin-paginate-rest": "^7.1.2",
     "@octokit/plugin-rest-endpoint-methods": "^7.1.3",
     "@octokit/types": "^11.1.0",
     "@types/cli-progress": "^3.11.3",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
     "@types/jest": "^29.5.4",
     "@types/lodash": "^4.14.198",
     "@types/numeral": "^2.0.3",
     "axios": "^1.5.1",
+    "body-parser": "^1.20.2",
     "chalk": "^4.1.2",
     "cli-progress": "^3.12.0",
     "commander": "^8.3.0",
+    "cors": "2.8.5",
+    "element-plus": "^2.3.1",
+    "express": "^4.18.2",
     "iptv-playlist-parser": "^0.13.0",
     "jest-expect-message": "^1.1.3",
     "lodash": "^4.17.21",
     "m3u-linter": "^0.3.0",
     "markdown-include": "^0.4.3",
+    "minimist": "^1.2.8",
+    "nodemailer": "^6.9.7",
     "numeral": "^2.0.6",
     "transliteration": "^2.3.5",
     "ts-jest": "^29.1.1",
-    "tsx": "^4.6.2"
+    "tsx": "^4.6.2",
+    "vue": "^3.3.11"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.7.2",
     "@typescript-eslint/parser": "^6.7.2",
-    "eslint": "^8.49.0"
+    "@vitejs/plugin-vue": "^4.5.2",
+    "eslint": "^8.49.0",
+    "jiti": "^1.21.0",
+    "npm-run-all": "^4.1.5",
+    "vite": "^5.0.8",
+    "vue-tsc": "^1.8.25"
   }
 }
