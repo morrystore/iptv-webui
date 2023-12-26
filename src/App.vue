@@ -94,6 +94,25 @@ export default {
 		},
 		initPlayer(url: string) {
 			console.log(url)
+
+			if(this.player) {
+				this.player.dispose()
+				this.player = undefined
+			}
+			
+			const boxNode = document.getElementById("video-box")
+			console.log(boxNode)
+			if(boxNode) {
+				boxNode.innerHTML = ''
+				const videostr = `<video id="my-video" class="video-js" controls preload="auto" poster="//vjs.zencdn.net/v/oceans.png"
+										style="width: 100%;height:100%">
+										<source id="source" type="application/x-mpegURL" />
+									</video>`
+				
+				boxNode.insertAdjacentHTML("afterend", videostr)
+			}
+			
+
 			let options = {
 				bigPlayButton: false,
 				textTrackDisplay: false,
@@ -108,10 +127,7 @@ export default {
 				],
 				fluid: true
 			}
-			if (this.player) {
-				this.player.dispose()
-				this.player = undefined
-			}
+
 			let player = videojs('my-video', options, () => {
 				videojs.log('Your player is ready!');
 
@@ -139,7 +155,7 @@ export default {
 			</el-select>
 			<el-select v-model="checked.country" placeholder="nsfw" filterable clearable
 				style="margin-left: 10px;">
-				<el-option v-for="(item, index) in options.country" :key="item" :label="item" :value="item" />
+				<el-option v-for="(item, index) in options.country" :key="index" :label="item" :value="item" />
 			</el-select>
 			<el-input v-model="checked.keywords" placeholder="keywords"
 				clearable
