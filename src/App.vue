@@ -3,15 +3,15 @@ import { get_streams, translate, TranslateResult } from './api/api'
 import { Stream } from '../scripts/models'
 
 import videojs from 'video.js'
-import { Search } from '@element-plus/icons-vue'
+// import { Search } from '@element-plus/icons-vue'
 // import 'videojs-contrib-hls'
+import Player from 'video.js/dist/types/player'
 
 export default {
 	data() {
 		return {
 			streams: <Stream[]>[],
 			originalStreams: <Stream[]>[],
-			Search: Search,
 			form: {
 				keywords: ""
 			},
@@ -34,7 +34,7 @@ export default {
 				country: "美国",
 				keywords: ""
 			},
-			player: undefined as any | undefined,
+			player: undefined as Player | undefined,
 			playUrl: ""
 		}
 	},
@@ -105,7 +105,8 @@ export default {
 						src: url,
 						type: 'application/x-mpegURL', // 告诉videojs,这是一个m3u8流
 					}
-				]
+				],
+				fluid: true
 			}
 			if (this.player) {
 				this.player.dispose()
@@ -132,17 +133,16 @@ export default {
 	<div class="container">
 		<el-card class="options">
 			<span class="result">{{ streams.length }}/{{ originalStreams.length }} results</span>
-			<el-select v-model="checked.isNSFW" class="m-2" placeholder="nsfw" filterable clearable
+			<el-select v-model="checked.isNSFW" placeholder="nsfw" filterable clearable
 				style="margin-left: 10px;">
 				<el-option v-for="(item, index) in options.isNSFW" :key="index" :label="item" :value="item" />
 			</el-select>
-			<el-select v-model="checked.country" class="m-2" placeholder="nsfw" filterable clearable
+			<el-select v-model="checked.country" placeholder="nsfw" filterable clearable
 				style="margin-left: 10px;">
 				<el-option v-for="(item, index) in options.country" :key="item" :label="item" :value="item" />
 			</el-select>
-			<el-input v-model="checked.keywords" placeholder="keywords"  :suffix-icon="Search"
+			<el-input v-model="checked.keywords" placeholder="keywords"
 				clearable
-				class="w-50 m-2" 
 				style="margin-left: 10px;"></el-input>
 			<el-button type="success"  @click="research" style="margin-left: 10px;">Search</el-button>
 		</el-card>
@@ -155,9 +155,9 @@ export default {
 				</div>
 			</div>
 
-			<div id="video-box" class="video-item">
+			<div id="video-box" class="video-item" style="flex: 1;width: 100%;">
 				<video id="my-video" class="video-js" controls preload="auto" poster="//vjs.zencdn.net/v/oceans.png"
-					data-setup='{}' style="width: 100%;height:100%">
+					style="width: 100%;height:100%">
 					<source id="source" :src="playUrl" type="application/x-mpegURL" />
 				</video>
 			</div>
@@ -193,7 +193,7 @@ export default {
 	/* height: 80vh; */
 	overflow-y: auto;
 	height: 100%;
-	flex: 1 0 auto;
+	flex: 0 0 auto;
 	width: 400px;
 }
 
@@ -222,5 +222,6 @@ export default {
 
 :deep(.el-card__body) {
 	display: flex;
+	width: 100%;
 }
 </style>
