@@ -21,9 +21,8 @@
     "deploy": "npm run playlist:deploy && npm run api:deploy",
     "lint": "npx eslint ./scripts/**/*.ts ./tests/**/*.ts",
     "test": "jest --runInBand",
-    "postinstall": "npm run api:load",
     "serve": "jiti src/server/index.ts --port 9001 --debug",
-    "web": "vite",
+    "web": "vite --host 0.0.0.0",
     "start": "npm-run-all --parallel serve web"
   },
   "jest": {
@@ -39,7 +38,7 @@
   "private": true,
   "license": "MIT",
   "dependencies": {
-    "@element-plus/icons": "^0.0.11",
+    "@element-plus/icons-vue": "^2.3.1",
     "@freearhey/core": "^0.2.1",
     "@octokit/core": "^4.2.1",
     "@octokit/plugin-paginate-rest": "^7.1.2",

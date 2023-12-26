@@ -1,11 +1,9 @@
 <script lang="ts">
 import { get_streams, translate, TranslateResult } from './api/api'
 import { Stream } from '../scripts/models'
-import { New265WebJs } from './static/libs/h265web.js'
 
 import videojs from 'video.js'
-import Player from 'video.js/dist/types/player'
-import { Search } from '@element-plus/icons'
+import { Search } from '@element-plus/icons-vue'
 // import 'videojs-contrib-hls'
 
 export default {
@@ -36,7 +34,7 @@ export default {
 				country: "美国",
 				keywords: ""
 			},
-			player: undefined as Player | undefined,
+			player: undefined as any | undefined,
 			playUrl: ""
 		}
 	},

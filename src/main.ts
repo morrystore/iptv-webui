@@ -3,7 +3,7 @@ import './style.css'
 import App from './App.vue'
 import router from './router'
 import ElementPlus from 'element-plus'
-import * as ElIcons from '@element-plus/icons'
+import * as ElIcons from '@element-plus/icons-vue'
 
 import 'video.js/dist/video-js.min.css'
 import 'element-plus/dist/index.css'
