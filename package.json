@@ -22,7 +22,7 @@
     "lint": "npx eslint ./scripts/**/*.ts ./tests/**/*.ts",
     "test": "jest --runInBand",
     "postinstall": "npm run api:load",
-    "serve": "jiti src/server/index.ts --port 9001",
+    "serve": "jiti src/server/index.ts --port 9001 --debug",
     "web": "vite",
     "start": "npm-run-all --parallel serve web"
   },

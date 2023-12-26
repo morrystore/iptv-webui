@@ -32,6 +32,7 @@ export class Stream {
   groupTitle: string
   removed: boolean = false
   timeshift: string
+  country: string
 
   constructor({
     channel,
@@ -61,6 +62,7 @@ export class Stream {
     this.isNSFW = false
     this.groupTitle = 'Undefined'
     this.timeshift = timeshift || ''
+    this.country = ''
   }
 
   normalizeURL() {
@@ -163,7 +165,8 @@ export class Stream {
       groupTitle: this.groupTitle || null,
       filepath: this.filepath || null,
       name: this.name || null,
-      label: this.label || null
+      label: this.label || null,
+      country: this.country || null
     }
   }
 

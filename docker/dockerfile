@@ -1,0 +1,8 @@
+FROM node:18-alpine3.16
+WORKDIR /app
+COPY ["package.json", "package-lock.json*", "./"]
+RUN  yarn install --force
+COPY . ./
+RUN yarn
+EXPOSE 5173
+CMD ["yarn", "start"]

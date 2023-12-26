@@ -1,10 +1,11 @@
 <script lang="ts">
-import { get_streams } from './api/api'
+import { get_streams, translate, TranslateResult } from './api/api'
 import { Stream } from '../scripts/models'
 import { New265WebJs } from './static/libs/h265web.js'
 
 import videojs from 'video.js'
 import Player from 'video.js/dist/types/player'
+import { Search } from '@element-plus/icons'
 // import 'videojs-contrib-hls'
 
 export default {
@@ -12,6 +13,7 @@ export default {
 		return {
 			streams: <Stream[]>[],
 			originalStreams: <Stream[]>[],
+			Search: Search,
 			form: {
 				keywords: ""
 			},
@@ -31,38 +33,60 @@ export default {
 				languages: undefined,
 				name: undefined,
 				quality: undefined,
-				country: "us"
+				country: "美国",
+				keywords: ""
 			},
-			player:  undefined as Player | undefined,
-			playUrl: "https://bigcitytv.playout.vju.tv/bigcitytv/main.m3u8"
+			player: undefined as Player | undefined,
+			playUrl: ""
 		}
 	},
 	mounted() {
 		this.load()
 	},
 	methods: {
+		async convertCountry2Chinese(country: string[], data:Stream[])  {
+			const countryStr = country.join(",")
+			const translateResult = await translate({words: country})
+			const cnStr = translateResult.TargetText
+			const cnCountry = cnStr.split("\n")
+			data.forEach(item => {
+				const index = country.indexOf(item.country)
+				if(index >= 0 && index < cnCountry.length) {
+					item.country = cnCountry[index]
+				}
+			})
+
+			this.options.country = cnCountry
+		},
 		async load(): Promise<void> {
 			let data = await get_streams()
-			
-			this.originalStreams = data
+
 			this.options.quality = Array.from(new Set(data.map(item => item.quality ?? "undefined")))
 			this.options.isNSFW = Array.from(new Set(data.map(item => (item.isNSFW ? "nsfw" : "normal"))))
-			this.options.country = Array.from(new Set(data.map(item => (item.filepath ?? "undefined").replace(".m3u", ""))))
+			let country = Array.from(new Set(data.map(item => (item.country ?? "undefined"))))
+			await this.convertCountry2Chinese(country, data)
 
 			this.streams = this.filter(data)
+			this.originalStreams = data
+		},
+		copy(data:Stream[]):Stream[] {
+			return JSON.parse(JSON.stringify(data)) as Stream[]
 		},
 		filter(data: Stream[]): Stream[] {
-			let newObj = JSON.parse(JSON.stringify(data)) as Stream[]
+			let newObj = this.copy(data)
 
 			return newObj.filter(item => {
 				let isOk = true
-				if(this.checked.isNSFW == "nsfw") {
+				if (this.checked.isNSFW == "nsfw") {
 					isOk &&= item.isNSFW
 				} else {
 					isOk &&= !item.isNSFW
 				}
-				if(this.checked.country) {
-					isOk &&= item.filepath == (this.checked.country + ".m3u")
+				if (this.checked.country) {
+					isOk &&= item.country == (this.checked.country)
+				}
+				if(this.checked.keywords) {
+					isOk &&= item.name.indexOf(this.checked.keywords) >= 0
 				}
 				return isOk
 			})
@@ -70,7 +94,7 @@ export default {
 		research() {
 			this.streams = this.filter(this.originalStreams)
 		},
-		initPlayer(url:string) {
+		initPlayer(url: string) {
 			console.log(url)
 			let options = {
 				bigPlayButton: false,
@@ -85,18 +109,18 @@ export default {
 					}
 				]
 			}
-			if(this.player) {
+			if (this.player) {
 				this.player.dispose()
 				this.player = undefined
 			}
-			let player = videojs('my-video',options ,  () => {
+			let player = videojs('my-video', options, () => {
 				videojs.log('Your player is ready!');
 
 				// In this context, `this` is the player that was created by Video.js.
 				player.play();
 
 				// How about an event listener?
-				player.on('ended', function() {
+				player.on('ended', function () {
 					videojs.log('Awww...over so soon?!');
 				});
 			});
@@ -109,40 +133,34 @@ export default {
 <template>
 	<div class="container">
 		<el-card class="options">
-			<span class="result">{{ originalStreams.length }} results</span>
-			<el-select v-model="checked.isNSFW" class="m-2" placeholder="nsfw" size="small" filterable clearable
+			<span class="result">{{ streams.length }}/{{ originalStreams.length }} results</span>
+			<el-select v-model="checked.isNSFW" class="m-2" placeholder="nsfw" filterable clearable
 				style="margin-left: 10px;">
 				<el-option v-for="(item, index) in options.isNSFW" :key="index" :label="item" :value="item" />
 			</el-select>
-			<el-select v-model="checked.country" class="m-2" placeholder="nsfw" size="small" filterable clearable
+			<el-select v-model="checked.country" class="m-2" placeholder="nsfw" filterable clearable
 				style="margin-left: 10px;">
 				<el-option v-for="(item, index) in options.country" :key="item" :label="item" :value="item" />
 			</el-select>
-			<el-button type="success" size="small" @click="research" style="margin-left: 10px;">Search</el-button>
+			<el-input v-model="checked.keywords" placeholder="keywords"  :suffix-icon="Search"
+				clearable
+				class="w-50 m-2" 
+				style="margin-left: 10px;"></el-input>
+			<el-button type="success"  @click="research" style="margin-left: 10px;">Search</el-button>
 		</el-card>
 		<el-card class="content">
 			<div class="stream-list">
 				<div class="stream-item" v-for="(item, idx) in streams" :key="idx">
 					<span class="stream-title">{{ item.name }}</span>
-					<el-button 
-						@click="initPlayer(item.url)" 
-						:title="item.url"
-						size="small" 
-						style="margin-left: 10px;">DO</el-button>
+					<el-button @click="initPlayer(item.url)" :title="item.url" size="small"
+						style="margin-right: 10px;">DO</el-button>
 				</div>
 			</div>
-			
+
 			<div id="video-box" class="video-item">
-				<video
-				id="my-video"
-				class="video-js"
-				controls
-				preload="auto"
-				poster="//vjs.zencdn.net/v/oceans.png"
-				data-setup='{}'
-				style="width: 500px;height:400px"
-				>
-				<source id="source" :src="playUrl" type="application/x-mpegURL" />
+				<video id="my-video" class="video-js" controls preload="auto" poster="//vjs.zencdn.net/v/oceans.png"
+					data-setup='{}' style="width: 100%;height:100%">
+					<source id="source" :src="playUrl" type="application/x-mpegURL" />
 				</video>
 			</div>
 		</el-card>
@@ -165,12 +183,14 @@ export default {
 	justify-content: center;
 	align-items: center;
 }
+
 .content {
 	flex: 1 1 auto;
 	display: flex;
 	flex-direction: row;
 	margin: 5px 10px;
 }
+
 .stream-list {
 	/* height: 80vh; */
 	overflow-y: auto;
@@ -178,6 +198,7 @@ export default {
 	flex: 1 0 auto;
 	width: 400px;
 }
+
 #player {
 	height: 100%;
 	flex: 1;
@@ -186,6 +207,7 @@ export default {
 .stream-item {
 	display: flex;
 	flex-direction: row;
+	justify-content: space-between;
 	margin-bottom: 10px;
 }
 
@@ -199,6 +221,7 @@ export default {
 	margin-right: 20px;
 	display: inline-block;
 }
+
 :deep(.el-card__body) {
 	display: flex;
 }

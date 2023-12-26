@@ -3,15 +3,17 @@ import './style.css'
 import App from './App.vue'
 import router from './router'
 import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
 import * as ElIcons from '@element-plus/icons'
+
 import 'video.js/dist/video-js.min.css'
+import 'element-plus/dist/index.css'
+
 
 
 const app = createApp(App)
 
-// for (const name in ElIcons){
-// 	app.component(name, ElIcons[name])
-// }
+for (const [key,component] of Object.entries(ElIcons)){
+	app.component(key, component)
+}
 
-app.use(router).use(ElementPlus).mount('#app')
+app.use(router).use(ElementPlus,{ size: 'small', zIndex: 3000 }).mount('#app')

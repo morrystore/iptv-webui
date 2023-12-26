@@ -6,12 +6,20 @@ import { ElMessage } from 'element-plus'
 
 // 环境的切换
 if (process.env.NODE_ENV == 'development') {
-    axios.defaults.baseURL = 'http://localhost:9001';
+    axios.defaults.baseURL = 'http://47.88.174.105:9001';
 } else if (process.env.NODE_ENV == 'debug') {
     axios.defaults.baseURL = '';
 } else if (process.env.NODE_ENV == 'production') {
-    axios.defaults.baseURL = 'http://localhost:9001';
+    axios.defaults.baseURL = 'http://47.88.174.105:9001';
 }
+
+export const axiosTranslate = axios.create({
+    baseURL: "http://47.88.174.105:8080/api",
+    headers: {
+        'Content-Type':'application/json;charset=UTF-8'
+    },
+    timeout: 10000
+})
 
 // 请求超时时间
 axios.defaults.timeout = 10000;

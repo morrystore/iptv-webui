@@ -13,15 +13,21 @@ app.use(cors())
 async function loadStreams({
   channels,
   categories,
-  languages
+  languages,
+  countries
 }: {
   channels: Collection
   categories: Collection
-  languages: Collection
+  languages: Collection,
+  countries: Collection
 }) {
   const groupedChannels = channels.keyBy(channel => channel.id)
   const groupedCategories = categories.keyBy(category => category.id)
   const groupedLanguages = languages.keyBy(language => language.code)
+  const countryMap = new Map()
+  countries.forEach(item => {
+    countryMap.set(item.code.toLowerCase(), item.name)
+  })
 
   const storage = new Storage(STREAMS_DIR)
   const parser = new PlaylistParser({ storage })
@@ -62,6 +68,11 @@ async function loadStreams({
         stream.broadcastArea = new Collection(defaultBroadcastArea)
       }
 
+      if(stream.filepath) {
+        const key = stream.filepath.replace(".m3u", "").split("_")[0]
+        stream.country = countryMap.get(key)
+      }
+
       return stream
     })
 
@@ -87,7 +98,8 @@ async function init() {
   const subdivisions = new Collection(subdivisionsContent).map(data => new Subdivision(data))
 
   logger.info('loading streams...')
-  let streams = await loadStreams({ channels, categories, languages })
+  let streams = await loadStreams({ channels, categories, languages , countries})
+
   return streams
 }
 
