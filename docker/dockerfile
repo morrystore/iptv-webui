@@ -3,5 +3,6 @@ WORKDIR /app
 COPY ["package.json", "package-lock.json*", "./"]
 RUN  yarn --force
 COPY . ./
+RUN yarn api:load
 EXPOSE 5173
 CMD ["yarn", "start"]
