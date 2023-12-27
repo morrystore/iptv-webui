@@ -5,6 +5,5 @@ RUN  yarn --force
 COPY . ./
 RUN yarn web:build
 RUN yarn api:load
-EXPOSE 5173
-EXPOSE 9001
+EXPOSE 4173 9001
 CMD ["yarn", "prod"]
