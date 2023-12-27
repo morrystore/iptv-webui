@@ -20,7 +20,7 @@ export default {
 				languages: [],
 				name: [],
 				quality: <string[]>[],
-				country: <string[]>[]
+				country: <Map<String,string>[]> []
 			},
 			checked: {
 				channel: undefined,
@@ -92,7 +92,7 @@ export default {
 					isOk &&= !item.isNSFW
 				}
 				if (this.checked.country) {
-					isOk &&= this.checked.country.indexOf(item.country) >= 0
+					isOk &&= this.checked.country == item.country
 				}
 				if (this.checked.keywords) {
 					isOk &&= item.name.indexOf(this.checked.keywords) >= 0
@@ -109,9 +109,15 @@ export default {
 					map.set(item.country, 1)
 				}
 			})
-			const result:string[] = []
+			const result:Map<string,string>[] = []
+			let id = 1
 			countrys.forEach(item => {
-				result.push(item + " ("+ map.get(item) + ")")
+				const dto = new Map<string,string>()
+				dto.set("name", item)
+				dto.set("count", map.get(item) + "")
+				dto.set("id", id.toString())
+				result.push(dto)
+				id++
 			})
 			return result
 		},
@@ -219,7 +225,10 @@ export default {
 			</el-select>
 			<el-select v-model="checked.country" placeholder="nsfw" filterable clearable
 				style="margin-left: 10px;max-width: 200px;">
-				<el-option v-for="(item, index) in options.country" :key="'country_' + item" :label="item" :value="item" />
+				<el-option v-for="(item, index) in options.country" 
+					:key="item.get('id')" 
+					:label="item.get('name') + '(' + item.get('count') + ')'" 
+					:value="item.get('name')" />
 			</el-select>
 			<el-input v-model="checked.keywords" placeholder="keywords" clearable
 				style="margin-left: 10px;max-width: 200px;"></el-input>
@@ -231,7 +240,9 @@ export default {
 			<div class="stream-list">
 				<div class="stream-item" v-for="(item, idx) in streams" :key="idx">
 					<span class="stream-title" :class="getChannelClass(item)">{{ item.name }}</span>
-					<el-button @click="initPlayer(item.url)" :title="item.url" style="margin-right: 10px;">DO</el-button>
+					<el-button @click="initPlayer(item.url)" 
+						:title="item.url + '-' + item.country" 
+						style="margin-right: 10px;">DO</el-button>
 				</div>
 			</div>
 			<div id="video-box" class="video-item" style="flex: 1;width: 100%;">
@@ -285,7 +296,11 @@ export default {
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
+	align-items: center;
 	margin-bottom: 10px;
+}
+.stream-item:hover .stream-title {
+	color :red;
 }
 
 .stream-url {
