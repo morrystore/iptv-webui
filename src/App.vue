@@ -1,10 +1,8 @@
 <script lang="ts">
-import { get_streams, translate, TranslateResult } from './api/api'
+import { getStreams, translate, TranslateResult, addBadUrl,removeBadUrl,updateStreams } from './api/api'
 import { Stream } from '../scripts/models'
 
 import videojs from 'video.js'
-// import { Search } from '@element-plus/icons-vue'
-// import 'videojs-contrib-hls'
 import Player from 'video.js/dist/types/player'
 
 export default {
@@ -35,29 +33,42 @@ export default {
 				keywords: ""
 			},
 			player: undefined as Player | undefined,
-			playUrl: ""
+			playUrl: "",
+			checkRunning: false,
+			checkUrls: <string[]>[],
+			updating: false
 		}
 	},
 	mounted() {
 		this.load()
 	},
 	methods: {
-		async convertCountry2Chinese(country: string[], data:Stream[])  {
+		getChannelClass(stream: Stream): string {
+			const cls = []
+			if(!stream.available) {
+				cls.push("invalid-channel")
+			}
+			if(stream.url == this.playUrl) {
+				cls.push("active-channel")
+			}
+			return cls.join(" ")
+		},
+		async convertCountry2Chinese(country: string[], data: Stream[]) {
 			const countryStr = country.join(",")
-			const translateResult = await translate({words: country})
+			const translateResult = await translate({ words: country })
 			const cnStr = translateResult.TargetText
 			const cnCountry = cnStr.split("\n")
 			data.forEach(item => {
 				const index = country.indexOf(item.country)
-				if(index >= 0 && index < cnCountry.length) {
+				if (index >= 0 && index < cnCountry.length) {
 					item.country = cnCountry[index]
 				}
 			})
 
-			this.options.country = cnCountry
+			this.options.country = this.countByCountry(cnCountry, data)
 		},
 		async load(): Promise<void> {
-			let data = await get_streams()
+			let data = await getStreams()
 
 			this.options.quality = Array.from(new Set(data.map(item => item.quality ?? "undefined")))
 			this.options.isNSFW = Array.from(new Set(data.map(item => (item.isNSFW ? "nsfw" : "normal"))))
@@ -67,7 +78,7 @@ export default {
 			this.streams = this.filter(data)
 			this.originalStreams = data
 		},
-		copy(data:Stream[]):Stream[] {
+		copy(data: Stream[]): Stream[] {
 			return JSON.parse(JSON.stringify(data)) as Stream[]
 		},
 		filter(data: Stream[]): Stream[] {
@@ -81,37 +92,56 @@ export default {
 					isOk &&= !item.isNSFW
 				}
 				if (this.checked.country) {
-					isOk &&= item.country == (this.checked.country)
+					isOk &&= this.checked.country.indexOf(item.country) >= 0
 				}
-				if(this.checked.keywords) {
+				if (this.checked.keywords) {
 					isOk &&= item.name.indexOf(this.checked.keywords) >= 0
 				}
 				return isOk
 			})
+		},
+		countByCountry(countrys:string[],data: Stream[]) {
+			let map = new Map<string, number>()
+			data.forEach(item=>{
+				if(map.has(item.country)) {
+					map.set(item.country, map.get(item.country) as number + 1)
+				} else {
+					map.set(item.country, 1)
+				}
+			})
+			const result:string[] = []
+			countrys.forEach(item => {
+				result.push(item + " ("+ map.get(item) + ")")
+			})
+			return result
 		},
 		research() {
 			this.streams = this.filter(this.originalStreams)
 		},
 		initPlayer(url: string) {
 			console.log(url)
+			this.playUrl = url
 
-			if(this.player) {
+			if (this.player) {
 				this.player.dispose()
 				this.player = undefined
 			}
-			
+
 			const boxNode = document.getElementById("video-box")
-			console.log(boxNode)
-			if(boxNode) {
+			if (boxNode) {
 				boxNode.innerHTML = ''
-				const videostr = `<video id="my-video" class="video-js" controls preload="auto" poster="//vjs.zencdn.net/v/oceans.png"
-										style="width: 100%;height:100%">
-										<source id="source" type="application/x-mpegURL" />
-									</video>`
-				
+				const videostr = `<video id="my-video" 
+									class="video-js" 
+									controls 
+									preload="auto" 
+									poster="//vjs.zencdn.net/v/oceans.png"
+									style="width: 100%;height:100%">
+									<source id="source" type="application/x-mpegURL" />
+								</video>`
+
 				boxNode.insertAdjacentHTML("afterend", videostr)
 			}
-			
+
 
 			let options = {
 				bigPlayButton: false,
@@ -127,19 +157,53 @@ export default {
 				],
 				fluid: true
 			}
-
-			let player = videojs('my-video', options, () => {
+			let player = videojs('my-video', options,  () => {
 				videojs.log('Your player is ready!');
-
 				// In this context, `this` is the player that was created by Video.js.
+				player.on("error", (e: EventTarget) => {
+					console.log(`Invalid url - ${url}`)
+					addBadUrl({url: url}).then(data => {
+						// set available state
+						this.streams.forEach(item => {
+							if(item.url == url) {
+								item.available = false
+							}
+						})
+						this.checkNext()
+					})
+				})
+				player.on("play", (e: EventTarget) => {
+					console.log(`This url can play - ${url}`)
+					removeBadUrl({url: url}).then(data => {
+						this.checkNext()
+					})
+				})
 				player.play();
+				player.muted(true)
 
-				// How about an event listener?
-				player.on('ended', function () {
-					videojs.log('Awww...over so soon?!');
-				});
 			});
 			this.player = player
+		},
+		checkNext() {
+			if(!this.checkRunning || this.checkUrls.length == 0) return
+			const url = this.checkUrls.shift()
+			if(url) this.initPlayer(url)
+		},
+		checkChannels() {
+			if(this.checkRunning) {
+				this.checkUrls = []
+				this.checkRunning = false
+			} else {
+				this.checkUrls = this.streams.map(item => item.url)
+				this.checkRunning = true
+				this.checkNext()
+			}
+		},
+		updateRemote() {
+			this.updating = true
+			updateStreams({}).then(data => {
+				this.updating = false
+			})
 		}
 	}
 }
@@ -150,32 +214,31 @@ export default {
 		<el-card class="options">
 			<span class="result">{{ streams.length }}/{{ originalStreams.length }} results</span>
 			<el-select v-model="checked.isNSFW" placeholder="nsfw" filterable clearable
-				style="margin-left: 10px;">
-				<el-option v-for="(item, index) in options.isNSFW" :key="index" :label="item" :value="item" />
+				style="margin-left: 10px;max-width: 200px;">
+				<el-option v-for="(item, index) in options.isNSFW" :key="'nsfw_' + item" :label="item" :value="item" />
 			</el-select>
 			<el-select v-model="checked.country" placeholder="nsfw" filterable clearable
-				style="margin-left: 10px;">
-				<el-option v-for="(item, index) in options.country" :key="index" :label="item" :value="item" />
+				style="margin-left: 10px;max-width: 200px;">
+				<el-option v-for="(item, index) in options.country" :key="'country_' + item" :label="item" :value="item" />
 			</el-select>
-			<el-input v-model="checked.keywords" placeholder="keywords"
-				clearable
-				style="margin-left: 10px;"></el-input>
-			<el-button type="success"  @click="research" style="margin-left: 10px;">Search</el-button>
+			<el-input v-model="checked.keywords" placeholder="keywords" clearable
+				style="margin-left: 10px;max-width: 200px;"></el-input>
+			<el-button type="success" @click="research" style="margin-left: 10px;">Search</el-button>
+			<el-button type="info" @click="checkChannels" style="margin-left: 10px;">{{checkRunning? 'Stop' : 'Check'}}</el-button>
+			<el-button type="warning" @click="updateRemote" style="margin-left: 10px;" :disabled="updating" :loading="updating">Update</el-button>
 		</el-card>
 		<el-card class="content">
 			<div class="stream-list">
 				<div class="stream-item" v-for="(item, idx) in streams" :key="idx">
-					<span class="stream-title">{{ item.name }}</span>
-					<el-button @click="initPlayer(item.url)" :title="item.url" size="small"
-						style="margin-right: 10px;">DO</el-button>
+					<span class="stream-title" :class="getChannelClass(item)">{{ item.name }}</span>
+					<el-button @click="initPlayer(item.url)" :title="item.url" style="margin-right: 10px;">DO</el-button>
 				</div>
 			</div>
-
 			<div id="video-box" class="video-item" style="flex: 1;width: 100%;">
-				<video id="my-video" class="video-js" controls preload="auto" poster="//vjs.zencdn.net/v/oceans.png"
+				<!-- <video id="my-video" class="video-js" controls preload="auto" poster="//vjs.zencdn.net/v/oceans.png"
 					style="width: 100%;height:100%">
 					<source id="source" :src="playUrl" type="application/x-mpegURL" />
-				</video>
+				</video> -->
 			</div>
 		</el-card>
 	</div>
@@ -233,11 +296,18 @@ export default {
 	font-size: 13px;
 	color: green;
 	margin-right: 20px;
-	display: inline-block;
+	display: flex;
+	align-items: center;
 }
 
 :deep(.el-card__body) {
 	display: flex;
 	width: 100%;
+}
+.invalid-channel {
+	color: #ccc;
+}
+.active-channel {
+	color: red;
 }
 </style>

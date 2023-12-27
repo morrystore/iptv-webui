@@ -33,6 +33,7 @@ export class Stream {
   removed: boolean = false
   timeshift: string
   country: string
+  available: boolean = true
 
   constructor({
     channel,
@@ -166,7 +167,8 @@ export class Stream {
       filepath: this.filepath || null,
       name: this.name || null,
       label: this.label || null,
-      country: this.country || null
+      country: this.country || null,
+      available: this.available
     }
   }
 

@@ -1,7 +1,10 @@
 import { Collection } from "@freearhey/core"
 import { get, post, axiosTranslate } from "./http"
 import { Stream } from '../../scripts/models'
-export const get_streams = () => get<Stream[]>("/", new Map())
+export const getStreams = () => get<Stream[]>("/", new Map())
+export const addBadUrl = (p:any) => post<string>("/addBadUrl", p)
+export const removeBadUrl = (p:any) => post<string>("/removeBadUrl", p)
+export const updateStreams = (p:any) => post<string>("/updateStreams", p)
 
 
 type TranslateResultProps = {
