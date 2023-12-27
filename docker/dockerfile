@@ -8,4 +8,4 @@ RUN yarn web:build
 RUN yarn api:load
 EXPOSE 5173
 EXPOSE 9001
-CMD ["sh", "start.sh"]
+CMD ["sh", "docker/start.sh"]
