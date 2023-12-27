@@ -21,9 +21,10 @@
     "deploy": "npm run playlist:deploy && npm run api:deploy",
     "lint": "npx eslint ./scripts/**/*.ts ./tests/**/*.ts",
     "test": "jest --runInBand",
-    "serve": "jiti src/server/index.ts --port 9001 --debug",
+    "server": "jiti src/server/index.ts --port 9001",
     "web": "vite --host 0.0.0.0",
-    "start": "npm-run-all --parallel serve web"
+    "web:build": "vite build",
+    "start": "npm-run-all --parallel server web"
   },
   "jest": {
     "transform": {

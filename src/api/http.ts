@@ -8,9 +8,9 @@ import { ElMessage } from 'element-plus'
 if (process.env.NODE_ENV == 'development') {
     axios.defaults.baseURL = 'http://localhost:9001';
 } else if (process.env.NODE_ENV == 'debug') {
-    axios.defaults.baseURL = '';
-} else if (process.env.NODE_ENV == 'production') {
     axios.defaults.baseURL = 'http://localhost:9001';
+} else if (process.env.NODE_ENV == 'production') {
+    axios.defaults.baseURL = 'http://47.88.174.105:9001';
 }
 
 export const axiosTranslate = axios.create({
