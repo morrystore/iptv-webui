@@ -24,7 +24,9 @@
     "server": "jiti src/server/index.ts --port 9001",
     "web": "vite --host 0.0.0.0",
     "web:build": "vite build",
-    "start": "npm-run-all --parallel server web"
+    "web:prod": "vite preview --host 0.0.0.0",
+    "start": "npm-run-all --parallel server web",
+    "prod": "npm-run-all --parallel server web:prod"
   },
   "jest": {
     "transform": {
