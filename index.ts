@@ -1,0 +1,1 @@
+// fix tsconfig.node.json error in vs code, keep this file empty.
