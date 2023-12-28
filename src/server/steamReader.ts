@@ -104,6 +104,7 @@ async function getStreams() {
 
     logger.info('loading streams...')
     let streams = await loadStreams({ channels, categories, languages, countries ,status})
+    streams = streams.uniqBy(s=>s.url)
 
     return streams
 }

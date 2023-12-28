@@ -1,5 +1,6 @@
 <script lang="ts">
-import { getStreams, translate, TranslateResult, addBadUrl,removeBadUrl,updateStreams } from './api/api'
+import { getStreams, addBadUrl,removeBadUrl,updateStreams } from './api/api'
+import {  translate, TranslateResult} from './api/translate'
 import { Stream } from '../scripts/models'
 
 import videojs from 'video.js'
@@ -67,6 +68,27 @@ export default {
 
 			this.options.country = this.countByCountry(cnCountry, data)
 		},
+		countByCountry(countrys:string[],data: Stream[]) {
+			let map = new Map<string, number>()
+			data.forEach(item=>{
+				if(map.has(item.country)) {
+					map.set(item.country, map.get(item.country) as number + 1)
+				} else {
+					map.set(item.country, 1)
+				}
+			})
+			const result:Map<string,string>[] = []
+			let id = 1
+			countrys.forEach(item => {
+				const dto = new Map<string,string>()
+				dto.set("name", item)
+				dto.set("count", map.get(item) + "")
+				dto.set("id", id.toString())
+				result.push(dto)
+				id++
+			})
+			return result
+		},
 		async load(): Promise<void> {
 			let data = await getStreams()
 
@@ -99,27 +121,6 @@ export default {
 				}
 				return isOk
 			})
-		},
-		countByCountry(countrys:string[],data: Stream[]) {
-			let map = new Map<string, number>()
-			data.forEach(item=>{
-				if(map.has(item.country)) {
-					map.set(item.country, map.get(item.country) as number + 1)
-				} else {
-					map.set(item.country, 1)
-				}
-			})
-			const result:Map<string,string>[] = []
-			let id = 1
-			countrys.forEach(item => {
-				const dto = new Map<string,string>()
-				dto.set("name", item)
-				dto.set("count", map.get(item) + "")
-				dto.set("id", id.toString())
-				result.push(dto)
-				id++
-			})
-			return result
 		},
 		research() {
 			this.streams = this.filter(this.originalStreams)
@@ -302,11 +303,6 @@ export default {
 .stream-item:hover .stream-title {
 	color :red;
 }
-
-.stream-url {
-	margin-left: 20px;
-}
-
 .result {
 	font-size: 13px;
 	color: green;

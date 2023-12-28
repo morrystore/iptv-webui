@@ -1,43 +1,8 @@
-import { Collection } from "@freearhey/core"
-import { get, post, axiosTranslate } from "./http"
+import { get, post } from "./http"
 import { Stream } from '../../scripts/models'
+
+// apis
 export const getStreams = () => get<Stream[]>("/", new Map())
 export const addBadUrl = (p:any) => post<string>("/addBadUrl", p)
 export const removeBadUrl = (p:any) => post<string>("/removeBadUrl", p)
 export const updateStreams = (p:any) => post<string>("/updateStreams", p)
-
-
-type TranslateResultProps = {
-    RequestId:string
-    Source:string
-    Target:string
-    TargetText:string
-}
-export class TranslateResult {
-    RequestId:string
-    Source:string
-    Target:string
-    TargetText:string
-    constructor({
-        RequestId,
-        Source,
-        Target,
-        TargetText
-    }:TranslateResultProps) {
-        this.RequestId = RequestId
-        this.Source = Source
-        this.Target = Target
-        this.TargetText = TargetText
-    }
-}
-export const translate = (params: any) => {
-    return new Promise<TranslateResult>((resolve, reject) => {
-        axiosTranslate.post<any>("prompt/translate", params)
-            .then(res => {
-                resolve(res.data);
-            })
-            .catch(err => {
-                reject(err.data)
-            })
-    });
-}
